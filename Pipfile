@@ -13,6 +13,7 @@ django-oauth-toolkit = "==2.3.0"
 django-admin-rangefilter = "==0.12.0"
 djangorestframework = "==3.14.0"
 drf-yasg = "*"
+django-filter = "==23.5"
 
 [dev-packages]
 black = "*"

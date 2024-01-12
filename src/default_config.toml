@@ -4,3 +4,6 @@ user = "postgres"
 password = "pass"
 host = "localhost"
 port = 5432
+
+[develop]
+development = "local" # values from: conf/settings/develop.py

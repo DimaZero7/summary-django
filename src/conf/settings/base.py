@@ -22,7 +22,9 @@ ROOT_URLCONF = "conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            BASE_DIR / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -36,19 +38,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "conf.wsgi.application"
-
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": config["database"]["name"],
-        "USER": config["database"]["user"],
-        "PASSWORD": config["database"]["password"],
-        "HOST": config["database"]["host"],
-        "PORT": config["database"]["port"],
-        "ATOMIC_REQUESTS": True,
-    }
-}
 
 
 AUTH_PASSWORD_VALIDATORS = [
