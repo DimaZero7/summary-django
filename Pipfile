@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 django = "==5.0.1"
 psycopg2-binary = "*"
-psycopg2 = "*"
+psycopg2 = "*"  # for windows
 django-split-settings = "==1.2.0"
 toml = "==0.10.2"
 django-oauth-toolkit = "==2.3.0"
@@ -19,6 +19,8 @@ django-filter = "==23.5"
 black = "*"
 isort = "*"
 flake8 = "*"
+faker = "==22.2.0"
+factory-boy = "==3.3.0"
 
 [requires]
 python_version = "3.11"

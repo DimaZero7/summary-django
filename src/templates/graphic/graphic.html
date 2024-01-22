@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script src="https://cdn.canvasjs.com/jquery.canvasjs.min.js"></script>
+    <script>
+        window.onload = function () {
+            function fetchDataAndDrawChart() {
+                $.ajax({
+                    url: '/api/web/graphic/max/',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        var chartData = [{
+                            type: "spline",
+                            dataPoints: data.map(function (item) {
+                                return {
+                                    x: new Date(item.created_timestamp),
+                                    y: item.changed_price
+                                };
+                            })
+                        }];
+
+                        // Опции для графика
+                        var options = {
+                            title: {
+                                text: "Spline Chart with Export as Image"
+                            },
+                            animationEnabled: true,
+                            exportEnabled: true,
+                            data: chartData
+                        };
+
+                        // Отрисовка графика
+                        $("#chartContainer").CanvasJSChart(options);
+                    },
+                    error: function (error) {
+                        console.log("Error fetching data:", error);
+                    }
+                });
+            }
+
+            // Вызов функции для выполнения запроса и построения графика
+            fetchDataAndDrawChart();
+        }
+    </script>
+</head>
+<body>
+    <div id="chartContainer" style="height: 370px; width: 100%;"></div>
+</body>
+</html>

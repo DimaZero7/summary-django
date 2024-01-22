@@ -5,8 +5,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Third-party apps
+    # Libraries
+    "django_filters",
     "rangefilter",
     "drf_yasg",
     "rest_framework",
+    # Apps
+    "apps.graphic",
 ]
