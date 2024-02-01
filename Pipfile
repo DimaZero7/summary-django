@@ -21,6 +21,7 @@ isort = "*"
 flake8 = "*"
 faker = "==22.2.0"
 factory-boy = "==3.3.0"
+freezegun = "==1.4.0"
 
 [requires]
 python_version = "3.11"

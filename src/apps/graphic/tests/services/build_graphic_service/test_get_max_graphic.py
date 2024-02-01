@@ -1,5 +1,4 @@
-from datetime import timedelta
-from decimal import Decimal
+from datetime import datetime, timezone
 
 from django.test import TestCase
 
@@ -43,7 +42,6 @@ class GetMaxGraphicTest(TestCase):
                 in the group
         """
         # Create data
-        expected_result = []
         points_for_max = 3
         BuildGraphicService.POINTS_FOR_MAX = points_for_max
 
@@ -51,116 +49,64 @@ class GetMaxGraphicTest(TestCase):
         one_point_count = 3
         one_point_price = 10
         one_point_avg = one_point_price * one_point_count / one_point_count
-        one_change_share_price_ids = []
-
-        for iteration in range(one_point_count):
-            change_share_price = ChangeSharePriceFactory(
-                changed_price=one_point_price
+        one_points_data = [
+            (one_point_price, datetime(2024, 1, 1, 1, tzinfo=timezone.utc)),
+            (one_point_price, datetime(2024, 1, 1, 2, tzinfo=timezone.utc)),
+            (one_point_price, datetime(2024, 1, 1, 3, tzinfo=timezone.utc)),
+        ]
+        for data in one_points_data:
+            change_share_price = ChangeSharePrice.objects.create(
+                changed_price=data[0]
             )
-            one_change_share_price_ids.append(change_share_price.id)
-
-            change_share_price.created_timestamp = (
-                change_share_price.created_timestamp
-                + timedelta(hours=iteration)
-            )
+            change_share_price.created_timestamp = data[1]
             change_share_price.save(update_fields=["created_timestamp"])
 
-        created_timestamp = (
-            ChangeSharePrice.objects.filter(id__in=one_change_share_price_ids)
-            .order_by("created_timestamp")
-            .only("created_timestamp")
-            .first()
-            .created_timestamp
-        )
-        expected_result.append(
-            {
-                "created_timestamp": created_timestamp,
-                "changed_price": round(
-                    Decimal(one_point_avg), BuildGraphicService.DECIMAL_PLACES
-                ),
-            }
-        )
-
-        # two point
+        # two points
         two_point_count = 3
         two_point_price = 20
         two_point_avg = two_point_price * two_point_count / two_point_count
-        two_change_share_price_ids = []
-
-        for iteration in range(two_point_count):
-            change_share_price = ChangeSharePriceFactory(
-                changed_price=two_point_price
+        two_points_data = [
+            (two_point_price, datetime(2024, 1, 1, 4, tzinfo=timezone.utc)),
+            (two_point_price, datetime(2024, 1, 1, 5, tzinfo=timezone.utc)),
+            (two_point_price, datetime(2024, 1, 1, 6, tzinfo=timezone.utc)),
+        ]
+        for data in two_points_data:
+            change_share_price = ChangeSharePrice.objects.create(
+                changed_price=data[0]
             )
-            two_change_share_price_ids.append(change_share_price.id)
-
-            change_share_price.created_timestamp = (
-                change_share_price.created_timestamp
-                + timedelta(hours=iteration + one_point_count)
-            )
+            change_share_price.created_timestamp = data[1]
             change_share_price.save(update_fields=["created_timestamp"])
 
-        created_timestamp = (
-            ChangeSharePrice.objects.filter(id__in=two_change_share_price_ids)
-            .order_by("created_timestamp")
-            .only("created_timestamp")
-            .first()
-            .created_timestamp
-        )
-        expected_result.append(
-            {
-                "created_timestamp": created_timestamp,
-                "changed_price": round(
-                    Decimal(two_point_avg), BuildGraphicService.DECIMAL_PLACES
-                ),
-            }
-        )
-
-        # three point
+        # three points
         three_point_count = 2
         three_point_price = 30
         three_point_avg = (
             three_point_price * three_point_count / three_point_count
         )
-        three_change_share_price_ids = []
-
-        for iteration in range(three_point_count):
-            change_share_price = ChangeSharePriceFactory(
-                changed_price=three_point_price
+        three_points_data = [
+            (three_point_price, datetime(2024, 1, 1, 7, tzinfo=timezone.utc)),
+            (three_point_price, datetime(2024, 1, 1, 8, tzinfo=timezone.utc)),
+        ]
+        for data in three_points_data:
+            change_share_price = ChangeSharePrice.objects.create(
+                changed_price=data[0]
             )
-            three_change_share_price_ids.append(change_share_price.id)
-
-            change_share_price.created_timestamp = (
-                change_share_price.created_timestamp
-                + timedelta(
-                    hours=iteration + one_point_count + two_point_count
-                )
-            )
+            change_share_price.created_timestamp = data[1]
             change_share_price.save(update_fields=["created_timestamp"])
-
-        created_timestamp = (
-            ChangeSharePrice.objects.filter(
-                id__in=three_change_share_price_ids
-            )
-            .order_by("created_timestamp")
-            .only("created_timestamp")
-            .first()
-            .created_timestamp
-        )
-        expected_result.append(
-            {
-                "created_timestamp": created_timestamp,
-                "changed_price": round(
-                    Decimal(three_point_avg),
-                    BuildGraphicService.DECIMAL_PLACES,
-                ),
-            }
-        )
 
         # Action
         result = BuildGraphicService().get_max_graphic()
 
         # Check
-        self.assertEqual(result, expected_result)
+        self.assertEqual(result[0]["changed_price"], one_point_avg)
+        self.assertEqual(result[1]["changed_price"], two_point_avg)
+        self.assertEqual(result[2]["changed_price"], three_point_avg)
+
+        self.assertEqual(result[0]["created_timestamp"], one_points_data[0][1])
+        self.assertEqual(result[1]["created_timestamp"], two_points_data[0][1])
+        self.assertEqual(
+            result[2]["created_timestamp"], three_points_data[0][1]
+        )
 
     def test_result_type(self):
         # Create data
