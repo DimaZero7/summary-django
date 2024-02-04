@@ -13,6 +13,7 @@ from apps.graphic.models import ChangeSharePrice
 class BuildGraphicService:
     DECIMAL_PLACES = 3
     POINTS_FOR_DAY = 24
+    POINTS_FOR_WEEK = 7
     POINTS_FOR_MAX = 12
 
     def get_day_graphic(self) -> List[Optional[Dict]]:
@@ -45,6 +46,47 @@ class BuildGraphicService:
                 month=created_timestamp_date.month,
                 day=created_timestamp_date.day,
                 hour=group["created_timestamp__hour"],
+                tzinfo=current_timezone,
+            )
+            data.append(
+                {
+                    "created_timestamp": created_timestamp,
+                    "changed_price": round(
+                        group["price"], self.DECIMAL_PLACES
+                    ),
+                }
+            )
+
+        return data
+
+    def get_week_graphic(self) -> List[Dict]:
+        current_timezone = timezone.get_current_timezone()
+        time_limit = datetime.now(tz=current_timezone) - relativedelta(
+            days=self.POINTS_FOR_WEEK
+        )
+
+        group_change_share_price = (
+            ChangeSharePrice.objects.filter(
+                created_timestamp__gte=time_limit,
+            )
+            .values(
+                "created_timestamp__date",
+            )
+            .annotate(
+                price=Avg("changed_price"),
+            )
+            .order_by(
+                "created_timestamp__date",
+            )
+        )
+
+        data = []
+        for group in group_change_share_price:
+            created_timestamp_date = group["created_timestamp__date"]
+            created_timestamp = datetime(
+                year=created_timestamp_date.year,
+                month=created_timestamp_date.month,
+                day=created_timestamp_date.day,
                 tzinfo=current_timezone,
             )
             data.append(

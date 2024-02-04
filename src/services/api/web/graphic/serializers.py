@@ -9,6 +9,12 @@ class GetGraphicDaySerializer(serializers.ModelSerializer):
         fields = ("changed_price", "created_timestamp")
 
 
+class GetGraphicWeekSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChangeSharePrice
+        fields = ("changed_price", "created_timestamp")
+
+
 class GetGraphicMaxSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChangeSharePrice

@@ -5,6 +5,7 @@ from apps.graphic.services import BuildGraphicService
 from services.api.web.graphic.serializers import (
     GetGraphicDaySerializer,
     GetGraphicMaxSerializer,
+    GetGraphicWeekSerializer,
 )
 
 
@@ -14,6 +15,16 @@ class GetGraphicDayView(APIView):
 
     def get(self, request, *args, **kwargs):
         data = BuildGraphicService().get_day_graphic()
+        serializer = self.response_serializer_class(data, many=True)
+        return Response(serializer.data)
+
+
+class GetGraphicWeekView(APIView):
+    permission_classes = ()
+    response_serializer_class = GetGraphicWeekSerializer
+
+    def get(self, request, *args, **kwargs):
+        data = BuildGraphicService().get_week_graphic()
         serializer = self.response_serializer_class(data, many=True)
         return Response(serializer.data)
 
