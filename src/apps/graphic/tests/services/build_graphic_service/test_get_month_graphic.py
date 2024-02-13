@@ -8,36 +8,40 @@ from apps.graphic.services import BuildGraphicService
 from apps.graphic.tests.factory import ChangeSharePriceFactory
 
 
-class GetWeekGraphicTest(TestCase):
+class GetMonthGraphicTest(TestCase):
     def test_values_less_than_points(self):
         # Create data
-        count = BuildGraphicService.POINTS_FOR_WEEK - 1
+        count = BuildGraphicService.POINTS_FOR_MONTH - 1
         change_shares_price = ChangeSharePriceFactory.create_batch(size=count)
 
         for iteration, change_share_price in enumerate(change_shares_price):
-            change_share_price.created_timestamp -= timedelta(days=iteration)
+            change_share_price.created_timestamp -= timedelta(weeks=iteration)
             change_share_price.save(update_fields=["created_timestamp"])
 
         # Action
-        result = BuildGraphicService().get_week_graphic()
+        result = BuildGraphicService().get_month_graphic()
 
         # Check
         self.assertEqual(len(result), count)
 
     def test_values_more_than_points(self):
         # Create data
-        count = BuildGraphicService.POINTS_FOR_WEEK + 1
-        change_shares_price = ChangeSharePriceFactory.create_batch(size=count)
+        count = BuildGraphicService.POINTS_FOR_MONTH + 1
+        change_shares_price = ChangeSharePriceFactory.create_batch(size=count, changed_price=455)
 
         for iteration, change_share_price in enumerate(change_shares_price):
-            change_share_price.created_timestamp -= timedelta(days=iteration)
-            change_share_price.save(update_fields=["created_timestamp"])
+            if iteration < BuildGraphicService.POINTS_FOR_MONTH:
+                change_share_price.changed_price = 1
+                change_share_price.created_timestamp -= timedelta(
+                    weeks=iteration
+                )
+                change_share_price.save(update_fields=["created_timestamp", "changed_price"])
 
         # Action
-        result = BuildGraphicService().get_week_graphic()
+        result = BuildGraphicService().get_month_graphic()
 
         # Check
-        self.assertEqual(len(result), BuildGraphicService.POINTS_FOR_WEEK)
+        self.assertEqual(len(result), BuildGraphicService.POINTS_FOR_MONTH)
 
     @freeze_time(datetime(2024, 1, 7, 0, 0))
     def test_result_values(self):
