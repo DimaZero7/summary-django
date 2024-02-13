@@ -3,7 +3,7 @@ from django.urls import include, path
 from services.api.swagger.views import LoginRequiredWebSchemaView
 from services.api.web.graphic import urls as graphic_urls
 
-app_name = "mobile"
+app_name = "web"
 
 urlpatterns = [
     path("swagger.yaml", LoginRequiredWebSchemaView.without_ui()),
@@ -16,13 +16,6 @@ urlpatterns = [
         include(
             (graphic_urls.urlpatterns, graphic_urls.app_name),
             namespace="graphic",
-        ),
-    ),
-    path(
-        "test/",
-        include(
-            (graphic_urls.urlpatterns, graphic_urls.app_name),
-            namespace="test",
         ),
     ),
 ]

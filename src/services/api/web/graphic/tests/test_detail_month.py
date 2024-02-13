@@ -10,8 +10,8 @@ from apps.graphic.models import ChangeSharePrice
 from apps.graphic.tests.factory import ChangeSharePriceFactory
 
 
-class GetGraphicDayTest(APITestCase):
-    url = reverse_lazy("api:web:graphic:detail_day")
+class GetGraphicMonthTest(APITestCase):
+    url = reverse_lazy("api:web:graphic:detail_month")
 
     def test_available_unauthorized(self):
         # Request
@@ -57,7 +57,7 @@ class GetGraphicDayTest(APITestCase):
         ChangeSharePriceFactory.create_batch(size=count_obj)
 
         change_share_price = ChangeSharePrice.objects.all().first()
-        change_share_price.created_timestamp -= timedelta(hours=2)
+        change_share_price.created_timestamp -= timedelta(weeks=1)
         change_share_price.save(update_fields=["created_timestamp"])
 
         # Request
@@ -65,11 +65,10 @@ class GetGraphicDayTest(APITestCase):
 
         # Check
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         self.assertEqual(len(response.data), count_obj)
 
     @mock.patch(
-        "apps.graphic.services.BuildGraphicService.get_day_graphic",
+        "apps.graphic.services.BuildGraphicService.get_month_graphic",
         return_value={},
     )
     def test_result_data(self, fake_build_graphic):

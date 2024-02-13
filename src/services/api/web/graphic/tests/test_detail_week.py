@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
+from unittest import mock
 
 from django.urls import reverse_lazy
 from rest_framework import status
@@ -65,3 +66,16 @@ class GetGraphicWeekTest(APITestCase):
         # Check
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), count_obj)
+
+    @mock.patch(
+        "apps.graphic.services.BuildGraphicService.get_week_graphic",
+        return_value={},
+    )
+    def test_result_data(self, fake_build_graphic):
+        # Request
+        response = self.client.get(self.url)
+
+        # Check
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertTrue(fake_build_graphic.called)

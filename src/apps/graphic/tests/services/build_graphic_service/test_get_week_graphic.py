@@ -30,8 +30,11 @@ class GetWeekGraphicTest(TestCase):
         change_shares_price = ChangeSharePriceFactory.create_batch(size=count)
 
         for iteration, change_share_price in enumerate(change_shares_price):
-            change_share_price.created_timestamp -= timedelta(days=iteration)
-            change_share_price.save(update_fields=["created_timestamp"])
+            if iteration < BuildGraphicService.POINTS_FOR_WEEK:
+                change_share_price.created_timestamp -= timedelta(
+                    days=iteration
+                )
+                change_share_price.save(update_fields=["created_timestamp"])
 
         # Action
         result = BuildGraphicService().get_week_graphic()

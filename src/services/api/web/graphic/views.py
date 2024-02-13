@@ -29,6 +29,16 @@ class GetGraphicWeekView(APIView):
         return Response(serializer.data)
 
 
+class GetGraphicMonthView(APIView):
+    permission_classes = ()
+    response_serializer_class = GetGraphicWeekSerializer
+
+    def get(self, request, *args, **kwargs):
+        data = BuildGraphicService().get_month_graphic()
+        serializer = self.response_serializer_class(data, many=True)
+        return Response(serializer.data)
+
+
 class GetGraphicMaxView(APIView):
     permission_classes = ()
     response_serializer_class = GetGraphicMaxSerializer

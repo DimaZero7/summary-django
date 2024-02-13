@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 
 from dateutil.relativedelta import relativedelta
 from django.db import connection
-from django.db.models import Avg
+from django.db.models import Avg, Case, IntegerField, Min, Value, When
 from django.utils import timezone
 
 from apps.graphic.models import ChangeSharePrice
@@ -12,9 +12,10 @@ from apps.graphic.models import ChangeSharePrice
 
 class BuildGraphicService:
     DECIMAL_PLACES = 3
-    POINTS_FOR_DAY = 24
-    POINTS_FOR_WEEK = 7
-    POINTS_FOR_MAX = 12
+    POINTS_FOR_DAY = 24  # hours
+    POINTS_FOR_WEEK = 7  # days
+    POINTS_FOR_MONTH = 4  # weeks
+    POINTS_FOR_MAX = 12  # points
 
     def get_day_graphic(self) -> List[Optional[Dict]]:
         current_timezone = timezone.get_current_timezone()
@@ -89,6 +90,60 @@ class BuildGraphicService:
                 day=created_timestamp_date.day,
                 tzinfo=current_timezone,
             )
+            data.append(
+                {
+                    "created_timestamp": created_timestamp,
+                    "changed_price": round(
+                        group["price"], self.DECIMAL_PLACES
+                    ),
+                }
+            )
+
+        return data
+
+    def get_month_graphic(self) -> List[Dict]:
+        current_timezone = timezone.get_current_timezone()
+        time_limit = datetime.now(tz=current_timezone) - relativedelta(
+            weeks=self.POINTS_FOR_MONTH
+        )
+
+        groups_month = [
+            datetime.now(tz=current_timezone) - relativedelta(weeks=iteration)
+            for iteration in range(1, self.POINTS_FOR_MONTH + 1)
+        ]
+
+        group_change_share_price = (
+            ChangeSharePrice.objects.filter(
+                created_timestamp__gte=time_limit,
+            )
+            .annotate(
+                group=Case(
+                    *[
+                        When(created_timestamp__gte=group, then=Value(i + 1))
+                        for i, group in enumerate(groups_month)
+                    ],
+                    output_field=IntegerField(),
+                ),
+            )
+            .values("group")
+            .annotate(
+                price=Avg("changed_price"),
+                created_timestamp_min=Min("created_timestamp"),
+            )
+            .order_by(
+                "created_timestamp_min",
+            )
+        )
+
+        data = []
+        for group in group_change_share_price:
+            created_timestamp = datetime(
+                year=group["created_timestamp_min"].year,
+                month=group["created_timestamp_min"].month,
+                day=group["created_timestamp_min"].day,
+                tzinfo=current_timezone,
+            )
+
             data.append(
                 {
                     "created_timestamp": created_timestamp,
