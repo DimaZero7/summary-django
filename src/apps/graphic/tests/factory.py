@@ -2,7 +2,6 @@ import random
 
 from factory import LazyAttribute
 from factory.django import DjangoModelFactory
-from faker import Faker
 
 from apps.graphic.models import ChangeSharePrice
 

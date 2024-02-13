@@ -27,7 +27,9 @@ class GetMonthGraphicTest(TestCase):
     def test_values_more_than_points(self):
         # Create data
         count = BuildGraphicService.POINTS_FOR_MONTH + 1
-        change_shares_price = ChangeSharePriceFactory.create_batch(size=count, changed_price=455)
+        change_shares_price = ChangeSharePriceFactory.create_batch(
+            size=count, changed_price=455
+        )
 
         for iteration, change_share_price in enumerate(change_shares_price):
             if iteration < BuildGraphicService.POINTS_FOR_MONTH:
@@ -35,7 +37,9 @@ class GetMonthGraphicTest(TestCase):
                 change_share_price.created_timestamp -= timedelta(
                     weeks=iteration
                 )
-                change_share_price.save(update_fields=["created_timestamp", "changed_price"])
+                change_share_price.save(
+                    update_fields=["created_timestamp", "changed_price"]
+                )
 
         # Action
         result = BuildGraphicService().get_month_graphic()
@@ -43,7 +47,7 @@ class GetMonthGraphicTest(TestCase):
         # Check
         self.assertEqual(len(result), BuildGraphicService.POINTS_FOR_MONTH)
 
-    @freeze_time(datetime(2024, 1, 7, 0, 0))
+    @freeze_time(datetime(2024, 1, 29, 0, 0))
     def test_result_values(self):
         """
         The test checks:
@@ -61,7 +65,7 @@ class GetMonthGraphicTest(TestCase):
             (one_point_price, datetime(2024, 1, 1, 0, tzinfo=timezone.utc)),
             (
                 one_point_price,
-                datetime(2024, 1, 1, 1, tzinfo=timezone.utc),
+                datetime(2024, 1, 7, 0, tzinfo=timezone.utc),
             ),
         ]
         for data in one_points_data:
@@ -76,14 +80,14 @@ class GetMonthGraphicTest(TestCase):
         two_point_price = 20
         two_point_avg = two_point_price * two_point_count / two_point_count
         two_points_data = [
-            (two_point_price, datetime(2024, 1, 2, 0, tzinfo=timezone.utc)),
+            (two_point_price, datetime(2024, 1, 8, 0, tzinfo=timezone.utc)),
             (
                 two_point_price,
-                datetime(2024, 1, 2, 1, tzinfo=timezone.utc),
+                datetime(2024, 1, 10, 0, tzinfo=timezone.utc),
             ),
             (
                 two_point_price,
-                datetime(2024, 1, 2, 2, tzinfo=timezone.utc),
+                datetime(2024, 1, 14, 0, tzinfo=timezone.utc),
             ),
         ]
         for data in two_points_data:
@@ -94,7 +98,7 @@ class GetMonthGraphicTest(TestCase):
             change_share_price.save(update_fields=["created_timestamp"])
 
         # Action
-        result = BuildGraphicService().get_week_graphic()
+        result = BuildGraphicService().get_month_graphic()
 
         # Check
         self.assertEqual(result[0]["changed_price"], one_point_avg)
@@ -108,7 +112,7 @@ class GetMonthGraphicTest(TestCase):
         ChangeSharePriceFactory()
 
         # Action
-        result = BuildGraphicService().get_week_graphic()
+        result = BuildGraphicService().get_month_graphic()
 
         # Check
         self.assertIsInstance(result, list)
@@ -116,7 +120,7 @@ class GetMonthGraphicTest(TestCase):
 
     def test_result_type_dict_optional(self):
         # Action
-        result = BuildGraphicService().get_week_graphic()
+        result = BuildGraphicService().get_month_graphic()
 
         # Check
         self.assertIsInstance(result, list)

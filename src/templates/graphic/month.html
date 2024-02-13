@@ -1,9 +1,9 @@
 {% extends 'main.html' %}
 
 {% block title %}
-    График за неделю
+    График за месяц
 {% endblock %}
 
 {% block url_get_data_for_graphic %}
-    '{% url 'api:web:graphic:detail_week' %}'
+    '{% url 'api:web:graphic:detail_month' %}'
 {% endblock %}

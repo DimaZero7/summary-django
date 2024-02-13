@@ -4,10 +4,7 @@ from typing import Dict, List, Optional
 
 from dateutil.relativedelta import relativedelta
 from django.db import connection
-from django.db.models import Avg, Value, IntegerField, DateField, When, F, Q, \
-    Case, Min
-from django.db.models.functions import Cast
-
+from django.db.models import Avg, Case, IntegerField, Min, Value, When
 from django.utils import timezone
 
 from apps.graphic.models import ChangeSharePrice
@@ -106,71 +103,55 @@ class BuildGraphicService:
 
     def get_month_graphic(self) -> List[Dict]:
         current_timezone = timezone.get_current_timezone()
-        time_limit = (
-            datetime.now(tz=current_timezone) -
-            relativedelta(weeks=self.POINTS_FOR_MONTH)
+        time_limit = datetime.now(tz=current_timezone) - relativedelta(
+            weeks=self.POINTS_FOR_MONTH
         )
 
-        groups_month = []
-        for iteration in range(1, self.POINTS_FOR_MONTH + 1):
-            groups_month.append(
-                datetime.now(tz=current_timezone) -
-                relativedelta(weeks=iteration)
+        groups_month = [
+            datetime.now(tz=current_timezone) - relativedelta(weeks=iteration)
+            for iteration in range(1, self.POINTS_FOR_MONTH + 1)
+        ]
+
+        group_change_share_price = (
+            ChangeSharePrice.objects.filter(
+                created_timestamp__gte=time_limit,
             )
-
-        # group_change_share_price = ChangeSharePrice.objects.filter(
-        #     created_timestamp__gte=time_limit,
-        # )
-        #
-        # print(time_limit)
-        # for f in group_change_share_price:
-        #     print(f.created_timestamp)
-        #     print(f.changed_price)
-
-
-        group_change_share_price = ChangeSharePrice.objects.filter(
-            created_timestamp__gte=time_limit,
-        ).annotate(
-            group=Case(
-                When(
-                    created_timestamp__gte=groups_month[0],
-                    then=Value(1),
+            .annotate(
+                group=Case(
+                    *[
+                        When(created_timestamp__gte=group, then=Value(i + 1))
+                        for i, group in enumerate(groups_month)
+                    ],
+                    output_field=IntegerField(),
                 ),
-                When(
-                    created_timestamp__gte=groups_month[1],
-                    then=Value(2),
-                ),
-                When(
-                    created_timestamp__gte=groups_month[2],
-                    then=Value(3),
-                ),
-                When(
-                    created_timestamp__gte=groups_month[3],
-                    then=Value(4),
-                ),
-            ),
-        ).values(
-            "group",
-        ).annotate(
-            price=Avg("changed_price"),
-            created_timestamp_min=Min("created_timestamp"),
-        ).order_by(
-            "created_timestamp_min",
+            )
+            .values("group")
+            .annotate(
+                price=Avg("changed_price"),
+                created_timestamp_min=Min("created_timestamp"),
+            )
+            .order_by(
+                "created_timestamp_min",
+            )
         )
 
         data = []
         for group in group_change_share_price:
             created_timestamp = datetime(
-                year=group['created_timestamp_min'].year,
-                month=group['created_timestamp_min'].month,
-                day=group['created_timestamp_min'].day,
+                year=group["created_timestamp_min"].year,
+                month=group["created_timestamp_min"].month,
+                day=group["created_timestamp_min"].day,
                 tzinfo=current_timezone,
             )
 
-            data.append({
-                "created_timestamp": created_timestamp,
-                'changed_price': round(group['price'], self.DECIMAL_PLACES),
-            })
+            data.append(
+                {
+                    "created_timestamp": created_timestamp,
+                    "changed_price": round(
+                        group["price"], self.DECIMAL_PLACES
+                    ),
+                }
+            )
 
         return data
 
