@@ -9,5 +9,6 @@ settings_include(
     "base.py",
     "rest.py",
     "swagger.py",
+    "celery.py",
     optional("local_settings.py"),
 )

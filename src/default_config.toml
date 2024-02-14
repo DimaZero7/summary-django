@@ -6,4 +6,10 @@ host = "localhost"
 port = 5432
 
 [develop]
-development = "local" # values from: conf/settings/develop.py
+development = "local"
+
+[celery]
+broker_url = "amqp://guest:guest@localhost:5672/"
+task_time_limit = 3600
+visibility_timeout = 3600
+polling_interval = 1
